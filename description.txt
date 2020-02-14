@@ -1,0 +1,8 @@
+This mod will create both Corruption and Crimson on any world created while it is enabled!
+
+NEW UPDATE - V 1.2
+-Added an icon
+
+NEW UPDATE - V 1.1
+-Fixed Crimson Hearts only spawning
+-The world is now set to whatever was originally set (If you select Corruption, it will count as Corruption for EoC drops etc)
