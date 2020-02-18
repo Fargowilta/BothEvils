@@ -1,5 +1,12 @@
 This mod will create both Corruption and Crimson on any world created while it is enabled!
 
+NEW UPDATE - V 2.0
+-Completely overhauled the way the mod works
+-Both evils now spawn proportionate to eachother, e.g if 4 corruption chasms would spawn in vanilla, 2 corruptions and 2 crimsons would spawn with this mod
+-Currently both evils generate close to those of the same type, with one type on one side of the world and the other on the other side. (Will likely add a toggle for this later)
+-Both types of altars now spawn
+-Fixed some generation issues
+
 NEW UPDATE - V 1.2
 -Added an icon
 
