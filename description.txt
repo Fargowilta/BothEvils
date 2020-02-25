@@ -1,5 +1,8 @@
 This mod will create both Corruption and Crimson on any world created while it is enabled!
 
+NEW UPDATE - V 2.1
+- Potentially fixed issue where world generation would get stuck at corruption pits
+
 NEW UPDATE - V 2.0
 -Completely overhauled the way the mod works
 -Both evils now spawn proportionate to eachother, e.g if 4 corruption chasms would spawn in vanilla, 2 corruptions and 2 crimsons would spawn with this mod
