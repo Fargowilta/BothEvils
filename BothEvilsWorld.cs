@@ -9,6 +9,22 @@ using Terraria.GameContent.Generation;
 using Terraria.ID;
 using Terraria.ModLoader;
 using Terraria.World.Generation;
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
+using System.Threading;
+using Terraria.DataStructures;
+using Terraria.Enums;
+using Terraria.GameContent;
+using Terraria.GameContent.Achievements;
+using Terraria.GameContent.Events;
+using Terraria.GameContent.Tile_Entities;
+using Terraria.Graphics.Capture;
+using Terraria.IO;
+using Terraria.Localization;
+using Terraria.Map;
+using Terraria.ModLoader.IO;
+using Terraria.ObjectData;
+using Terraria.Utilities;
 
 namespace BetterBothEvils
 {
@@ -976,32 +992,29 @@ namespace BetterBothEvils
             float num2 = (float)Main.maxTilesX / 4200f;
             int num3 = (int)((float)WorldGen.genRand.Next(3, 6) * num);
             int k = 0;
-
             while (k < num3)
             {
-                if (Biomes<ThinIceBiome>.Place(WorldGen.RandomWorldPoint((int)Main.worldSurface + 20, 50, 200, 50), WorldGen.structures))
+                if (Biomes<ThinIceBiome>.Place(WorldGen.RandomWorldPoint((int)Main.worldSurface + 0x14, 0x32, 0xC8, 0x32), WorldGen.structures))
                 {
                     k++;
                 }
             }
-
             progress.Set(0.1f);
-            progress.Message = Lang.gen[76] + "..Enchanted Swords";
+            LocalizedText localizedText = Lang.gen[76];
+            progress.Message = ((localizedText != null) ? localizedText.ToString() : null) + "..Enchanted Swords";
             int num4 = (int)Math.Ceiling((double)num);
             int l = 0;
-            int attempts = 0;
-            while (l < num4 && attempts < 10000/*and number of attempts is low...*/)
+            while (l < num4)
             {
-                attempts++;
                 Point origin;
-                origin.Y = (int)WorldGen.worldSurface + WorldGen.genRand.Next(50, 100);
+                origin.Y = (int)WorldGen.worldSurface + WorldGen.genRand.Next(0x32, 0x64);
                 if (WorldGen.genRand.Next(2) == 0)
                 {
-                    origin.X = WorldGen.genRand.Next(50, (int)((float)Main.maxTilesX * 0.3f));
+                    origin.X = WorldGen.genRand.Next(0x32, (int)((float)Main.maxTilesX * 0.3f));
                 }
                 else
                 {
-                    origin.X = WorldGen.genRand.Next((int)((float)Main.maxTilesX * 0.7f), Main.maxTilesX - 50);
+                    origin.X = WorldGen.genRand.Next((int)((float)Main.maxTilesX * 0.7f), Main.maxTilesX - 0x32);
                 }
                 if (Biomes<EnchantedSwordBiome>.Place(origin, WorldGen.structures))
                 {
@@ -1009,59 +1022,60 @@ namespace BetterBothEvils
                 }
             }
             progress.Set(0.2f);
-            progress.Message = Lang.gen[76] + "..Campsites";
-            int num5 = (int)((float)WorldGen.genRand.Next(6, 12) * num);
+            LocalizedText localizedText2 = Lang.gen[76];
+            progress.Message = ((localizedText2 != null) ? localizedText2.ToString() : null) + "..Campsites";
+            int num5 = (int)((float)WorldGen.genRand.Next(6, 0xC) * num);
             int m = 0;
             while (m < num5)
             {
-                if (Biomes<CampsiteBiome>.Place(WorldGen.RandomWorldPoint((int)Main.worldSurface, 50, 200, 50), WorldGen.structures))
+                if (Biomes<CampsiteBiome>.Place(WorldGen.RandomWorldPoint((int)Main.worldSurface, 0x32, 0xC8, 0x32), WorldGen.structures))
                 {
                     m++;
                 }
             }
-            progress.Message = Lang.gen[76] + "..Mining Explosives";
+            LocalizedText localizedText3 = Lang.gen[76];
+            progress.Message = ((localizedText3 != null) ? localizedText3.ToString() : null) + "..Mining Explosives";
             progress.Set(0.25f);
-            int num6 = (int)((float)WorldGen.genRand.Next(14, 30) * num);
+            int num6 = (int)((float)WorldGen.genRand.Next(0xE, 0x1E) * num);
             int n = 0;
             while (n < num6)
             {
-                if (Biomes<MiningExplosivesBiome>.Place(WorldGen.RandomWorldPoint((int)WorldGen.rockLayer, 50, 200, 50), WorldGen.structures))
+                if (Biomes<MiningExplosivesBiome>.Place(WorldGen.RandomWorldPoint((int)WorldGen.rockLayer, 0x32, 0xC8, 0x32), WorldGen.structures))
                 {
                     n++;
                 }
             }
-            progress.Message = Lang.gen[76] + "..Mahogany Trees";
+            LocalizedText localizedText4 = Lang.gen[76];
+            progress.Message = ((localizedText4 != null) ? localizedText4.ToString() : null) + "..Mahogany Trees";
             progress.Set(0.3f);
-            int num7 = (int)((float)WorldGen.genRand.Next(6, 12) * num2);
+            int num7 = (int)((float)WorldGen.genRand.Next(6, 0xC) * num2);
             int num8 = 0;
             int num9 = 0;
-            while (num8 < num7 && num9 < 20000)
+            while (num8 < num7 && num9 < 0x4E20)
             {
-                if (Biomes<MahoganyTreeBiome>.Place(WorldGen.RandomWorldPoint((int)Main.worldSurface + 50, 50, 500, 50), WorldGen.structures))
+                if (Biomes<MahoganyTreeBiome>.Place(WorldGen.RandomWorldPoint((int)Main.worldSurface + 0x32, 0x32, 0x1F4, 0x32), WorldGen.structures))
                 {
                     num8++;
                 }
                 num9++;
             }
-            // The tiny pits that are added to already formed corruption biomes
-            progress.Message = Lang.gen[76] + "..Corruption Pits";
+            LocalizedText localizedText5 = Lang.gen[76];
+            progress.Message = ((localizedText5 != null) ? localizedText5.ToString() : null) + "..Corruption Pits";
             progress.Set(0.4f);
-            if ((int)Math.Ceiling(Main.maxTilesX * 0.00045) > 0)
+            int num10 = (int)((float)WorldGen.genRand.Next(1, 3) * num);
+            int num11 = 0;
+            while (num11 < num10)
             {
-                int num10 = (int)((float)WorldGen.genRand.Next(1, 3) * num);
-                int num11 = 0;
-                while (num11 < num10)
+                if (Biomes<CorruptionPitBiome>.Place(WorldGen.RandomWorldPoint((int)Main.worldSurface, 0x32, 0x1F4, 0x32), WorldGen.structures))
                 {
-                    if (Biomes<CorruptionPitBiome>.Place(WorldGen.RandomWorldPoint((int)Main.worldSurface, 50, 500, 50), WorldGen.structures))
-                    {
-                        num11++;
-                    }
+                    num11++;
                 }
             }
-            progress.Message = Lang.gen[76] + "..Minecart Tracks";
+
+            LocalizedText localizedText6 = Lang.gen[76];
+            progress.Message = ((localizedText6 != null) ? localizedText6.ToString() : null) + "..Minecart Tracks";
             progress.Set(0.5f);
-            int minTrackLength = Math.Min((int)(num * 25f) + 250, 350);
-            TrackGenerator.Run((int)(10f * num), minTrackLength);
+            TrackGenerator.Run((int)(10f * num), (int)(num * 25f) + 0xFA);
             progress.Set(1f);
         }
 
