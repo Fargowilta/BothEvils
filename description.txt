@@ -1,10 +1,13 @@
 This mod will create both Corruption and Crimson on any world created while it is enabled!
 
-NEW UPDATE - V 2.1
+NEW UPDATE - V 3.0
 -Both evil biome chests now generate in the dungeon!
--Fixed a bug where it sometimes hanged when generating Corruption Pits.
+-ACTUALLY (hopefully) fixed the issue where world generation would get stuck at corruption pits.
 -Fixed a crashing bug where the world would only generate if the dungeon was on a specific side.
 -Generating worlds should be way more stable overall.
+
+NEW UPDATE - V 2.1
+- Potentially fixed issue where world generation would get stuck at corruption pits
 
 NEW UPDATE - V 2.0
 -Completely overhauled the way the mod works
