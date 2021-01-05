@@ -1,91 +1,92 @@
 ﻿using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
 using Terraria;
 using Terraria.GameContent.Biomes;
 using Terraria.GameContent.Generation;
 using Terraria.ID;
 using Terraria.ModLoader;
 using Terraria.World.Generation;
-using System.Diagnostics;
-using System.Runtime.CompilerServices;
-using System.Threading;
-using Terraria.DataStructures;
-using Terraria.Enums;
-using Terraria.GameContent;
-using Terraria.GameContent.Achievements;
-using Terraria.GameContent.Events;
-using Terraria.GameContent.Tile_Entities;
-using Terraria.Graphics.Capture;
-using Terraria.IO;
 using Terraria.Localization;
-using Terraria.Map;
-using Terraria.ModLoader.IO;
-using Terraria.ObjectData;
-using Terraria.Utilities;
+using static Libvaxy.Reflection;
 
 namespace BetterBothEvils
 {
     public class BetterBothEvilsWorld : ModWorld
     {
-        public static int grassSpread;
         public int crimsonSide = 0;
-        public static int heartCount = 0;
-        public static Vector2[] heartPos = new Vector2[100];
-
         public override void ModifyWorldGenTasks(List<GenPass> tasks, ref float totalWeight)
         {
-            int resetIndex = tasks.FindIndex(i => i.Name == "Reset");
-            int jungleIndex = tasks.FindIndex(i => i.Name == "Jungle");
+            int resetIndex = tasks.FindIndex(genpass => genpass.Name.Equals("Reset"));
             if (resetIndex != -1)
             {
                 tasks.Insert(resetIndex + 1, new PassLegacy("Set Crimson Side", SetCrimsonSide));
             }
 
-            int CorruptionIndex = tasks.FindIndex((GenPass genpass) => genpass.Name.Equals("Corruption"));
+            int dungeonIndex = tasks.FindIndex(genpass => genpass.Name.Equals("Dungeon"));
+            if (dungeonIndex != -1)
+            {
+                tasks.Insert(dungeonIndex + 1, new PassLegacy("Other Evil Chest", OtherEvilChest));
+            }
+
+            int CorruptionIndex = tasks.FindIndex(genpass => genpass.Name.Equals("Corruption"));
             if (CorruptionIndex != -1)
             {
                 tasks[CorruptionIndex] = new PassLegacy("Corruption", (progress) => Corruption(progress, tasks[resetIndex] as PassLegacy));
             }
 
-            int altarIndex = tasks.FindIndex(i => i.Name == "Altars");
+            int altarIndex = tasks.FindIndex(genpass => genpass.Name.Equals("Altars"));
             if (altarIndex != -1)
             {
                 tasks[altarIndex] = new PassLegacy("Altars", Altar);
             }
 
-            int tilecleanupIndex = tasks.FindIndex(i => i.Name == "Tile Cleanup");
+            int tilecleanupIndex = tasks.FindIndex(genpass => genpass.Name.Equals("Tile Cleanup"));
             if (tilecleanupIndex != -1)
             {
                 tasks[tilecleanupIndex] = new PassLegacy("Tile Cleanup", TileCleanup);
             }
 
-            int microbiomesIndex = tasks.FindIndex(i => i.Name == "Micro Biomes");
+            int microbiomesIndex = tasks.FindIndex(genpass => genpass.Name.Equals("Micro Biomes"));
             if (microbiomesIndex != -1)
             {
                 tasks[microbiomesIndex] = new PassLegacy("Micro Biomes", (progress) => MicroBiomes(progress, tasks[resetIndex] as PassLegacy));
             }
         }
 
+        public void OtherEvilChest(GenerationProgress progress)
+        {
+            int dMinX = GetStaticField<int>(typeof(WorldGen), "dMinX");
+            int dMaxX = GetStaticField<int>(typeof(WorldGen), "dMaxX");
+            int dMaxY = GetStaticField<int>(typeof(WorldGen), "dMaxY");
+            bool flag = false;
+            while (!flag)
+            {
+                int i = WorldGen.genRand.Next(dMinX, dMaxX);
+                int j = WorldGen.genRand.Next((int)Main.worldSurface, dMaxY);
+                if (Main.wallDungeon[(int)Main.tile[i, j].wall] && !Main.tile[i, j].active())
+                {
+                    int contain = 0;
+                    int Style = 0;
+                    if (WorldGen.crimson)
+                    {
+                        Style = 24;
+                        contain = 1571;
+                    }
+                    else
+                    {
+                        Style = 25;
+                        contain = 1569;
+                    }
+                    flag = WorldGen.AddBuriedChest(i, j, contain, false, Style);
+                }
+            }
+        }
+
         public void Corruption(GenerationProgress progress, PassLegacy resetPass)
         {
-            FieldInfo generationMethod = typeof(PassLegacy).GetField("_method", BindingFlags.Instance | BindingFlags.NonPublic);
-            WorldGenLegacyMethod method = (WorldGenLegacyMethod)generationMethod.GetValue(resetPass);
-            var dungeonfield = method.Method.DeclaringType?.GetFields
-            (
-                BindingFlags.NonPublic |
-                BindingFlags.Instance |
-                BindingFlags.Public |
-                BindingFlags.Static
-            )
-            .Single(x => x.Name == "dungeonSide");
-            int dungeonSide = (int)dungeonfield.GetValue(method.Target);
-
-            FieldInfo jungleField = typeof(WorldGen).GetField("JungleX", BindingFlags.NonPublic | BindingFlags.Static);
-            int JungleX = (int)jungleField.GetValue(null);
-
+            bool dungeonSide = WorldGen.dungeonX > Main.maxTilesX / 2;
+            int JungleX = GetStaticField<int>(typeof(WorldGen), "JungleX");
             int i2;
 
             {
@@ -105,7 +106,7 @@ namespace BetterBothEvils
                         flag2 = true;
                         int num6 = Main.maxTilesX / 2;
                         int num7 = 200;
-                        if (dungeonSide < 0)
+                        if (dungeonSide == false)
                         {
                             num2 = WorldGen.genRand.Next(600, Main.maxTilesX - 320);
                             if (Main.maxTilesY < 1000) num2 = WorldGen.genRand.Next(100, Main.maxTilesX - 50);
@@ -131,48 +132,23 @@ namespace BetterBothEvils
                                 continue;
                             }
                         }
-                        if (Main.maxTilesY < 1000)
+                        num3 = num2 - WorldGen.genRand.Next(200) - 100;
+                        num4 = num2 + WorldGen.genRand.Next(200) + 100;
+                        if (num3 < 285)
                         {
-                            num3 = num2 - WorldGen.genRand.Next(50) - 50;
-                            num4 = num2 + WorldGen.genRand.Next(50) + 50;
-                            if (num3 < 50)
-                            {
-                                num3 = 50;
-                            }
-                            if (num4 > Main.maxTilesX - 50)
-                            {
-                                num4 = Main.maxTilesX - 50;
-                            }
-                            if (dungeonSide < 0 && num3 < 50)
-                            {
-                                num3 = 50;
-                            }
-                            else if (dungeonSide > 0 && num3 > Main.maxTilesX - 50)
-                            {
-                                num3 = Main.maxTilesX - 50;
-                            }
-                            num7 = 50;
+                            num3 = 285;
                         }
-                        else
+                        if (num4 > Main.maxTilesX - 285)
                         {
-                            num3 = num2 - WorldGen.genRand.Next(200) - 100;
-                            num4 = num2 + WorldGen.genRand.Next(200) + 100;
-                            if (num3 < 285)
-                            {
-                                num3 = 285;
-                            }
-                            if (num4 > Main.maxTilesX - 285)
-                            {
-                                num4 = Main.maxTilesX - 285;
-                            }
-                            if (dungeonSide < 0 && num3 < 400)
-                            {
-                                num3 = 400;
-                            }
-                            else if (dungeonSide > 0 && num3 > Main.maxTilesX - 400)
-                            {
-                                num3 = Main.maxTilesX - 400;
-                            }
+                            num4 = Main.maxTilesX - 285;
+                        }
+                        if (dungeonSide == false && num3 < 400)
+                        {
+                            num3 = 400;
+                        }
+                        else if (dungeonSide == true && num3 > Main.maxTilesX - 400)
+                        {
+                            num3 = Main.maxTilesX - 400;
                         }
                         if (num2 > num6 - num7 && num2 < num6 + num7)
                         {
@@ -230,7 +206,8 @@ namespace BetterBothEvils
                                 int num9 = num8 + WorldGen.genRand.Next(10, 14);
                                 for (int n = num8; n < num9; n++)
                                 {
-                                    if ((Main.tile[m, n].type == 59 || Main.tile[m, n].type == 60) && m >= num3 + WorldGen.genRand.Next(5) && m < num4 - WorldGen.genRand.Next(5))
+                                    //if ((Main.tile[m, n].type == 59 || Main.tile[m, n].type == 60) && m >= num3 + WorldGen.genRand.Next(5) && m < num4 - WorldGen.genRand.Next(5))
+                                    if ((Main.tile[num8, n].type == 59 || Main.tile[num8, n].type == 60 || Main.tile[num8, n].type == 70) && num8 >= num2 + WorldGen.genRand.Next(5) && num8 < num4 - WorldGen.genRand.Next(5))
                                     {
                                         Main.tile[m, n].type = 0;
                                     }
@@ -265,7 +242,7 @@ namespace BetterBothEvils
                                 }
                                 if (Main.tile[i2, num12].type == 0 && (double)num12 < Main.worldSurface - 1.0 && !flag3)
                                 {
-                                    grassSpread = 0;
+                                    SetStaticField(typeof(WorldGen), "grassSpread", 0);
                                     SpreadGrass(i2, num12, 0, 199, true, 0);
                                 }
                                 flag3 = true;
@@ -373,13 +350,6 @@ namespace BetterBothEvils
                         num20 = WorldGen.genRand.Next(320, Main.maxTilesX - 320);
                         num21 = num20 - WorldGen.genRand.Next(200) - 100;
                         num22 = num20 + WorldGen.genRand.Next(200) + 100;
-                        if (Main.maxTilesX <= 640)
-                        {
-                            num20 = WorldGen.genRand.Next(100, Main.maxTilesX - 100);
-                            num21 = num20 - WorldGen.genRand.Next(50) - 50;
-                            num22 = num20 + WorldGen.genRand.Next(50) + 50;
-                            num25 = 50;
-                        }
                         if (crimsonSide == -1) // Crimson on left
                         {
                             if (num20 < Main.maxTilesX / 2)
@@ -532,7 +502,7 @@ namespace BetterBothEvils
                                 }
                                 if (Main.tile[i2, num36].type == 0 && (double)num36 < Main.worldSurface - 1.0 && !flag6)
                                 {
-                                    grassSpread = 0;
+                                    SetStaticField(typeof(WorldGen), "grassSpread", 0);
                                     SpreadGrass(i2, num36, 0, 23, true, 0);
                                 }
                                 flag6 = true;
@@ -975,17 +945,7 @@ namespace BetterBothEvils
 
         public void MicroBiomes(GenerationProgress progress, PassLegacy resetPass)
         {
-            FieldInfo generationMethod = typeof(PassLegacy).GetField("_method", BindingFlags.Instance | BindingFlags.NonPublic);
-            WorldGenLegacyMethod method = (WorldGenLegacyMethod)generationMethod.GetValue(resetPass);
-            var dungeonfield = method.Method.DeclaringType?.GetFields
-            (
-                BindingFlags.NonPublic |
-                BindingFlags.Instance |
-                BindingFlags.Public |
-                BindingFlags.Static
-            )
-            .Single(x => x.Name == "dungeonSide");
-            int dungeonSide = (int)dungeonfield.GetValue(method.Target);
+            bool dungeonSide = WorldGen.dungeonX > Main.maxTilesX / 2;
 
             progress.Message = Lang.gen[76].Value + "..Thin Ice";
             float num = (float)(Main.maxTilesX * Main.maxTilesY) / 5040000f;
@@ -1066,7 +1026,7 @@ namespace BetterBothEvils
             int num11 = 0;
             while (num11 < num10)
             {
-                if (Biomes<CorruptionPitBiome>.Place(WorldGen.RandomWorldPoint((int)Main.worldSurface, 0x32, 0x1F4, 0x32), WorldGen.structures))
+                if (Biomes<CorruptionPitBiome>.Place(WorldGen.RandomWorldPoint((int)Main.worldSurface, crimsonSide == 1 ? Main.maxTilesX / 2 : 50, 500, crimsonSide == -1 ? Main.maxTilesX / 2 : 50), WorldGen.structures))
                 {
                     num11++;
                 }
@@ -1082,7 +1042,6 @@ namespace BetterBothEvils
         public void SetCrimsonSide(GenerationProgress progress)
         {
             crimsonSide = (WorldGen.genRand.Next(2) == 0) ? -1 : 1;
-            heartCount = 0;
         }
 
         public static void SpreadGrass(int i, int j, int dirt = 0, int grass = 2, bool repeat = true, byte color = 0)
@@ -1145,11 +1104,14 @@ namespace BetterBothEvils
                                             {
                                                 try
                                                 {
-                                                    if (repeat && grassSpread < 1000)
+                                                    if (repeat && GetStaticField<int>(typeof(WorldGen), "grassSpread") < 1000)
                                                     {
-                                                        grassSpread++;
+                                                        int grassSpreadTemp = GetStaticField<int>(typeof(WorldGen), "grassSpread");
+                                                        grassSpreadTemp++;
+                                                        SetStaticField(typeof(WorldGen), "grassSpread", grassSpreadTemp);
                                                         SpreadGrass(m, n, dirt, grass, true, 0);
-                                                        grassSpread--;
+                                                        grassSpreadTemp--;
+                                                        SetStaticField(typeof(WorldGen), "grassSpread", grassSpreadTemp);
                                                     }
                                                 }
                                                 catch
@@ -1172,7 +1134,7 @@ namespace BetterBothEvils
         public static void CrimStart(int i, int j)
         {
             int crimDir = 1;
-            heartCount = 0;
+            SetStaticField(typeof(WorldGen), "heartCount", 0);
             // WorldGen.crimson = true;
             int num = j;
             if ((double)num > Main.worldSurface)
@@ -1350,11 +1312,11 @@ namespace BetterBothEvils
                 array[l] = vector2;
                 CrimVein(new Vector2((float)num17, (float)num18), vector2);
             }
-            for (int n = 0; n < heartCount; n++)
+            for (int n = 0; n < GetStaticField<int>(typeof(WorldGen), "heartCount"); n++)
             {
                 num3 = (float)WorldGen.genRand.Next(16, 21);
-                int num20 = (int)heartPos[n].X;
-                int num21 = (int)heartPos[n].Y;
+                int num20 = (int)GetStaticField<Vector2[]>(typeof(WorldGen), "heartPos")[n].X;
+                int num21 = (int)GetStaticField<Vector2[]>(typeof(WorldGen), "heartPos")[n].Y;
                 int num22 = (int)((float)num20 - num3 / 2f);
                 while ((float)num22 < (float)num20 + num3 / 2f)
                 {
@@ -1375,11 +1337,11 @@ namespace BetterBothEvils
                     num22++;
                 }
             }
-            for (int num27 = 0; num27 < heartCount; num27++)
+            for (int num27 = 0; num27 < GetStaticField<int>(typeof(WorldGen), "heartCount"); num27++)
             {
                 num3 = (float)WorldGen.genRand.Next(10, 14);
-                int num28 = (int)heartPos[num27].X;
-                int num29 = (int)heartPos[num27].Y;
+                int num28 = (int)GetStaticField<Vector2[]>(typeof(WorldGen), "heartPos")[num27].X;
+                int num29 = (int)GetStaticField<Vector2[]>(typeof(WorldGen), "heartPos")[num27].Y;
                 int num30 = (int)((float)num28 - num3 / 2f);
                 while ((float)num30 < (float)num28 + num3 / 2f)
                 {
@@ -1399,9 +1361,9 @@ namespace BetterBothEvils
                     num30++;
                 }
             }
-            for (int num35 = 0; num35 < heartCount; num35++)
+            for (int num35 = 0; num35 < GetStaticField<int>(typeof(WorldGen), "heartCount"); num35++)
             {
-                AddShadowOrb((int)heartPos[num35].X, (int)heartPos[num35].Y, false);
+                AddShadowOrb((int)GetStaticField<Vector2[]>(typeof(WorldGen), "heartPos")[num35].X, (int)GetStaticField<Vector2[]>(typeof(WorldGen), "heartPos")[num35].Y, false);
             }
             int num36 = Main.maxTilesX;
             int num37 = 0;
@@ -1554,8 +1516,12 @@ namespace BetterBothEvils
                     flag = false;
                 }
             }
-            heartPos[heartCount] = position;
-            heartCount++;
+            Vector2[] heartPosTemp = GetStaticField<Vector2[]>(typeof(WorldGen), "heartPos");
+            int heartCountTemp = GetStaticField<int>(typeof(WorldGen), "heartCount");
+            heartPosTemp[heartCountTemp] = position;
+            heartCountTemp++;
+            SetStaticField(typeof(WorldGen), "heartPos", heartPosTemp);
+            SetStaticField(typeof(WorldGen), "heartCount", heartCountTemp);
         }
 
         public static void ChasmRunner(int i, int j, int steps, bool makeOrb = false)

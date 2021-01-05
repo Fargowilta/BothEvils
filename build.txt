@@ -1,3 +1,7 @@
 displayName = Fargo's Both Evils
 author = Fargowilta, kittenchilly
+<<<<<<< Updated upstream
 version = 2.1
+=======
+version = 2.1
+>>>>>>> Stashed changes
