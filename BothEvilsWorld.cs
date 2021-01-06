@@ -7,7 +7,6 @@ using Terraria.GameContent.Generation;
 using Terraria.ID;
 using Terraria.Localization;
 using Terraria.ModLoader;
-using Terraria.Utilities;
 using Terraria.World.Generation;
 using static Libvaxy.Reflection;
 using static Terraria.ModLoader.ModContent;
