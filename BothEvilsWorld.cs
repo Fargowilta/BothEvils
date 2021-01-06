@@ -5,12 +5,14 @@ using Terraria;
 using Terraria.GameContent.Biomes;
 using Terraria.GameContent.Generation;
 using Terraria.ID;
-using Terraria.ModLoader;
-using Terraria.World.Generation;
 using Terraria.Localization;
+using Terraria.ModLoader;
+using Terraria.Utilities;
+using Terraria.World.Generation;
 using static Libvaxy.Reflection;
+using static Terraria.ModLoader.ModContent;
 
-namespace BetterBothEvils
+namespace BothEvils
 {
     public class BetterBothEvilsWorld : ModWorld
     {
@@ -18,7 +20,7 @@ namespace BetterBothEvils
         public override void ModifyWorldGenTasks(List<GenPass> tasks, ref float totalWeight)
         {
             int resetIndex = tasks.FindIndex(genpass => genpass.Name.Equals("Reset"));
-            if (resetIndex != -1)
+            if (resetIndex != -1 && GetInstance<BothEvilsConfig>().CrimsonCorruptionAvoidEachother)
             {
                 tasks.Insert(resetIndex + 1, new PassLegacy("Set Crimson Side", SetCrimsonSide));
             }
@@ -52,6 +54,29 @@ namespace BetterBothEvils
             {
                 tasks[microbiomesIndex] = new PassLegacy("Micro Biomes", (progress) => MicroBiomes(progress, tasks[resetIndex] as PassLegacy));
             }
+        }
+
+        public override void ModifyHardmodeTasks(List<GenPass> list)
+        {
+            int hardmodeevilIndex = list.FindIndex(genpass => genpass.Name.Equals("Hardmode Evil"));
+            if (hardmodeevilIndex != -1)
+            {
+                list.Insert(hardmodeevilIndex + 1, new PassLegacy("Hardmode Evil", HardmodeEvil));
+            }
+        }
+
+        public void HardmodeEvil(GenerationProgress progress)
+        {
+            int num4; //choose east or west at random
+            if (WorldGen.genRand.Next(2) == 0) //east
+            {
+                num4 = Main.maxTilesX;
+            }
+            else //west
+            {
+                num4 = 0;
+            }
+            GERunner(num4, 0);
         }
 
         public void OtherEvilChest(GenerationProgress progress)
@@ -116,20 +141,23 @@ namespace BetterBothEvils
                             num2 = WorldGen.genRand.Next(320, Main.maxTilesX - 600);
                             if (Main.maxTilesY < 1000) num2 = WorldGen.genRand.Next(50, Main.maxTilesX - 100);
                         }
-                        if (crimsonSide == -1) // Crimson on left
+                        if (GetInstance<BothEvilsConfig>().CrimsonCorruptionAvoidEachother)
                         {
-                            if (num2 > Main.maxTilesX / 2)
+                            if (crimsonSide == -1) // Crimson on left
                             {
-                                flag2 = false;
-                                continue;
+                                if (num2 > Main.maxTilesX / 2)
+                                {
+                                    flag2 = false;
+                                    continue;
+                                }
                             }
-                        }
-                        else if (crimsonSide == 1)
-                        {
-                            if (num2 < Main.maxTilesX / 2)
+                            else if (crimsonSide == 1)
                             {
-                                flag2 = false;
-                                continue;
+                                if (num2 < Main.maxTilesX / 2)
+                                {
+                                    flag2 = false;
+                                    continue;
+                                }
                             }
                         }
                         num3 = num2 - WorldGen.genRand.Next(200) - 100;
@@ -350,23 +378,25 @@ namespace BetterBothEvils
                         num20 = WorldGen.genRand.Next(320, Main.maxTilesX - 320);
                         num21 = num20 - WorldGen.genRand.Next(200) - 100;
                         num22 = num20 + WorldGen.genRand.Next(200) + 100;
-                        if (crimsonSide == -1) // Crimson on left
+                        if (GetInstance<BothEvilsConfig>().CrimsonCorruptionAvoidEachother)
                         {
-                            if (num20 < Main.maxTilesX / 2)
+                            if (crimsonSide == -1) // Crimson on left
                             {
-                                flag5 = false;
-                                continue;
+                                if (num20 < Main.maxTilesX / 2)
+                                {
+                                    flag5 = false;
+                                    continue;
+                                }
+                            }
+                            else if (crimsonSide == 1)
+                            {
+                                if (num20 > Main.maxTilesX / 2)
+                                {
+                                    flag5 = false;
+                                    continue;
+                                }
                             }
                         }
-                        else if (crimsonSide == 1)
-                        {
-                            if (num20 > Main.maxTilesX / 2)
-                            {
-                                flag5 = false;
-                                continue;
-                            }
-                        }
-
                         if (num21 < 285)
                         {
                             num21 = 285;
@@ -1020,13 +1050,13 @@ namespace BetterBothEvils
                 num9++;
             }
             LocalizedText localizedText5 = Lang.gen[76];
-            progress.Message = ((localizedText5 != null) ? localizedText5.ToString() : null) + "..Corruption Pits";
+            progress.Message = ((localizedText5 != null) ? localizedText5.ToString() : null) + "..Corruption Pits (Can take a while!)";
             progress.Set(0.4f);
             int num10 = (int)((float)WorldGen.genRand.Next(1, 3) * num);
             int num11 = 0;
             while (num11 < num10)
             {
-                if (Biomes<CorruptionPitBiome>.Place(WorldGen.RandomWorldPoint((int)Main.worldSurface, crimsonSide == 1 ? Main.maxTilesX / 2 : 50, 500, crimsonSide == -1 ? Main.maxTilesX / 2 : 50), WorldGen.structures))
+                if (Biomes<CorruptionPitBiome>.Place(WorldGen.RandomWorldPoint((int)Main.worldSurface, GetInstance<BothEvilsConfig>().CrimsonCorruptionAvoidEachother && crimsonSide == 1 ? Main.maxTilesX / 2 : 50, 500, GetInstance<BothEvilsConfig>().CrimsonCorruptionAvoidEachother && crimsonSide == -1 ? Main.maxTilesX / 2 : 50), WorldGen.structures))
                 {
                     num11++;
                 }
@@ -1790,5 +1820,210 @@ namespace BetterBothEvils
             Main.tile[x, y].frameX = (short)(18 + num);
             Main.tile[x, y].frameY = 18;
         }
+
+        public static void GERunner(int i, int j, float speedX = 0f, float speedY = 0f, bool good = true)
+        {
+            int num = 0;
+            for (int k = 20; k < Main.maxTilesX - 20; k++)
+            {
+                for (int l = 20; l < Main.maxTilesY - 20; l++)
+                {
+                    if (Main.tile[k, l].active() && Main.tile[k, l].type == 225)
+                        num++;
+                }
+            }
+
+            bool flag = false;
+            if (num > 200000)
+                flag = true;
+
+            int num2 = WorldGen.genRand.Next(200, 250);
+            float num3 = Main.maxTilesX / 4200;
+            num2 = (int)((float)num2 * num3);
+            double num4 = num2;
+            Vector2 vector = default(Vector2);
+            vector.X = i;
+            vector.Y = j;
+            Vector2 vector2 = default(Vector2);
+            vector2.X = (float)WorldGen.genRand.Next(-10, 11) * 0.1f;
+            vector2.Y = (float)WorldGen.genRand.Next(-10, 11) * 0.1f;
+            if (speedX != 0f || speedY != 0f)
+            {
+                vector2.X = speedX;
+                vector2.Y = speedY;
+            }
+
+            bool flag2 = true;
+            while (flag2)
+            {
+                int num5 = (int)((double)vector.X - num4 * 0.5);
+                int num6 = (int)((double)vector.X + num4 * 0.5);
+                int num7 = (int)((double)vector.Y - num4 * 0.5);
+                int num8 = (int)((double)vector.Y + num4 * 0.5);
+                if (num5 < 0)
+                    num5 = 0;
+
+                if (num6 > Main.maxTilesX)
+                    num6 = Main.maxTilesX;
+
+                if (num7 < 0)
+                    num7 = 0;
+
+                if (num8 > Main.maxTilesY - 5)
+                    num8 = Main.maxTilesY - 5;
+
+                for (int m = num5; m < num6; m++)
+                {
+                    for (int n = num7; n < num8; n++)
+                    {
+                        if (!((double)(Math.Abs((float)m - vector.X) + Math.Abs((float)n - vector.Y)) < (double)num2 * 0.5 * (1.0 + (double)WorldGen.genRand.Next(-10, 11) * 0.015)))
+                            continue;
+
+                        if (!WorldGen.crimson)
+                        {
+                            if (Main.tile[m, n].wall == 63 || Main.tile[m, n].wall == 65 || Main.tile[m, n].wall == 66 || Main.tile[m, n].wall == 68)
+                                Main.tile[m, n].wall = 81;
+                            else if (Main.tile[m, n].wall == 216)
+                                Main.tile[m, n].wall = 218;
+                            else if (Main.tile[m, n].wall == 187)
+                                Main.tile[m, n].wall = 221;
+
+                            if (flag && Main.tile[m, n].type == 225)
+                            {
+                                Main.tile[m, n].type = 203;
+                                WorldGen.SquareTileFrame(m, n);
+                            }
+                            else if (flag && Main.tile[m, n].type == 230)
+                            {
+                                Main.tile[m, n].type = 399;
+                                WorldGen.SquareTileFrame(m, n);
+                            }
+                            else if (Main.tile[m, n].type == 2)
+                            {
+                                Main.tile[m, n].type = 199;
+                                WorldGen.SquareTileFrame(m, n);
+                            }
+                            else if (Main.tile[m, n].type == 1)
+                            {
+                                Main.tile[m, n].type = 203;
+                                WorldGen.SquareTileFrame(m, n);
+                            }
+                            else if (Main.tile[m, n].type == 53 || Main.tile[m, n].type == 123)
+                            {
+                                Main.tile[m, n].type = 234;
+                                WorldGen.SquareTileFrame(m, n);
+                            }
+                            else if (Main.tile[m, n].type == 109)
+                            {
+                                Main.tile[m, n].type = 199;
+                                WorldGen.SquareTileFrame(m, n);
+                            }
+                            else if (Main.tile[m, n].type == 117)
+                            {
+                                Main.tile[m, n].type = 203;
+                                WorldGen.SquareTileFrame(m, n);
+                            }
+                            else if (Main.tile[m, n].type == 116)
+                            {
+                                Main.tile[m, n].type = 234;
+                                WorldGen.SquareTileFrame(m, n);
+                            }
+                            else if (Main.tile[m, n].type == 161 || Main.tile[m, n].type == 164)
+                            {
+                                Main.tile[m, n].type = 200;
+                                WorldGen.SquareTileFrame(m, n);
+                            }
+                            else if (Main.tile[m, n].type == 396)
+                            {
+                                Main.tile[m, n].type = 401;
+                                WorldGen.SquareTileFrame(m, n);
+                            }
+                            else if (Main.tile[m, n].type == 397)
+                            {
+                                Main.tile[m, n].type = 399;
+                                WorldGen.SquareTileFrame(m, n);
+                            }
+                        }
+                        else
+                        {
+                            if (Main.tile[m, n].wall == 63 || Main.tile[m, n].wall == 65 || Main.tile[m, n].wall == 66 || Main.tile[m, n].wall == 68)
+                                Main.tile[m, n].wall = 69;
+                            else if (Main.tile[m, n].wall == 216)
+                                Main.tile[m, n].wall = 217;
+                            else if (Main.tile[m, n].wall == 187)
+                                Main.tile[m, n].wall = 220;
+
+                            if (flag && Main.tile[m, n].type == 225)
+                            {
+                                Main.tile[m, n].type = 25;
+                                WorldGen.SquareTileFrame(m, n);
+                            }
+                            else if (flag && Main.tile[m, n].type == 230)
+                            {
+                                Main.tile[m, n].type = 398;
+                                WorldGen.SquareTileFrame(m, n);
+                            }
+                            else if (Main.tile[m, n].type == 2)
+                            {
+                                Main.tile[m, n].type = 23;
+                                WorldGen.SquareTileFrame(m, n);
+                            }
+                            else if (Main.tile[m, n].type == 1)
+                            {
+                                Main.tile[m, n].type = 25;
+                                WorldGen.SquareTileFrame(m, n);
+                            }
+                            else if (Main.tile[m, n].type == 53 || Main.tile[m, n].type == 123)
+                            {
+                                Main.tile[m, n].type = 112;
+                                WorldGen.SquareTileFrame(m, n);
+                            }
+                            else if (Main.tile[m, n].type == 109)
+                            {
+                                Main.tile[m, n].type = 23;
+                                WorldGen.SquareTileFrame(m, n);
+                            }
+                            else if (Main.tile[m, n].type == 117)
+                            {
+                                Main.tile[m, n].type = 25;
+                                WorldGen.SquareTileFrame(m, n);
+                            }
+                            else if (Main.tile[m, n].type == 116)
+                            {
+                                Main.tile[m, n].type = 112;
+                                WorldGen.SquareTileFrame(m, n);
+                            }
+                            else if (Main.tile[m, n].type == 161 || Main.tile[m, n].type == 164)
+                            {
+                                Main.tile[m, n].type = 163;
+                                WorldGen.SquareTileFrame(m, n);
+                            }
+                            else if (Main.tile[m, n].type == 396)
+                            {
+                                Main.tile[m, n].type = 400;
+                                WorldGen.SquareTileFrame(m, n);
+                            }
+                            else if (Main.tile[m, n].type == 397)
+                            {
+                                Main.tile[m, n].type = 398;
+                                WorldGen.SquareTileFrame(m, n);
+                            }
+                        }
+                    }
+                }
+
+                vector += vector2;
+                vector2.X += (float)WorldGen.genRand.Next(-10, 11) * 0.05f;
+                if (vector2.X > speedX + 1f)
+                    vector2.X = speedX + 1f;
+
+                if (vector2.X < speedX - 1f)
+                    vector2.X = speedX - 1f;
+
+                if (vector.X < (float)(-num2) || vector.Y < (float)(-num2) || vector.X > (float)(Main.maxTilesX + num2) || vector.Y > (float)(Main.maxTilesY + num2))
+                    flag2 = false;
+            }
+        }
     }
+
 }
