@@ -1,18 +1,24 @@
-This mod will create both Corruption and Crimson on any world created while it is enabled!
+This mod will create both Corruption and Crimson on any world created while it is enabled, as well as a whole bunch of other stuff to allow you to do everything concerning both evils in once world!
 
-NEW UPDATE - V 2.1
-- Potentially fixed issue where world generation would get stuck at corruption pits
 
-NEW UPDATE - V 2.0
--Completely overhauled the way the mod works
--Both evils now spawn proportionate to eachother, e.g if 4 corruption chasms would spawn in vanilla, 2 corruptions and 2 crimsons would spawn with this mod
--Currently both evils generate close to those of the same type, with one type on one side of the world and the other on the other side. (Will likely add a toggle for this later)
--Both types of altars now spawn
--Fixed some generation issues
+NEW UPDATE - V 3.0
+-- Generation
+-Both evil biome chests now generate in the dungeon!
+-You can have both evil biomes generate during hard mode!
 
-NEW UPDATE - V 1.2
--Added an icon
+-- New Item
+- Key of Flight: Craft using 15 souls of flight, place in a chest and you'll be able fight the other evil biome's mimic!
 
-NEW UPDATE - V 1.1
--Fixed Crimson Hearts only spawning
--The world is now set to whatever was originally set (If you select Corruption, it will count as Corruption for EoC drops etc)
+-- Drops
+- Eye of Cthulhu: drops both evil's drops at the same time in normal mode, expert mode however only gives one or another evil's drops randomly per treasure bag.
+- Dryad: Now sells both evil's seeds and powders during a blood moon.
+- Steampunker: Now sells both evil's clentaminator solutions during a blood moon or solar eclipse.
+
+-- Config
+-You can now toggle if you want the biomes to avoid eachother or to just be placed randomly around the world in the config. Avoiding eachother is the default.
+-Both evil biomes generating in hard mode is a toggle for players that want more challenge. It defaults to off.
+
+-- Bug Fixes
+-ACTUALLY (hopefully) fixed the issue where world generation would get stuck at corruption pits.
+-Fixed a crashing bug where the world would only generate if the dungeon was on a specific side.
+-Generating worlds should be way more stable overall.
